@@ -1,0 +1,6 @@
+Version="2023-11-20"
+Authors=['minicoz']
+Name="Gluetun VPN Port"
+Description="auto set the gluetun port forward value from the control server and reconnects to nicotine. Update nicotine to version 3.3.7 for it to work well."
+Prefix="GPF"
+
