@@ -1,4 +1,4 @@
-# Nicotine Plus Port Forwarding Plugin
+# Nicotine Plus Gluetun VPN AUTO Set Port Plugin
 
 This plugin is designed to integrate **Nicotine+ version 3.3.7 or higher** with the **Gluten VPN Docker container**, automatically updating Nicotine+ with the latest port forwarding number from the Gluten control plane server. This is especially useful when port numbers are randomized due to a restart of the Gluten VPN container.
 
