@@ -64,3 +64,26 @@ class VpnControlServerApi(object):
         else:
             self._log("Missing port data")
             raise Exception("VpnServerInvalidPortException")
+
+    def is_port_closed(self, port):
+        try:
+            # Form the URL to check the port
+            url = f"https://www.slsknet.org/porttest.php?port={port}"
+            self._log(url)
+            
+            # Open the URL and read the response
+            with urllib.request.urlopen(url) as response:
+                # Read the response and decode it to a string
+                body = response.read().decode('utf-8')
+                
+                # Check if the port status is open
+                if f"{port}/tcp open" in body:
+                    self._log(f"Port {port} is open")
+                    return 0
+                else:
+                    self._log(f"Port {port} is closed")
+                    return 1
+
+        except urllib.error.URLError as e:
+            self._log(f"Error: {e}")
+            return 1
