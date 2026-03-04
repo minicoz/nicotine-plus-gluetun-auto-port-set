@@ -11,18 +11,20 @@ class Plugin(BasePlugin):
         G_HOST = os.environ.get('GLUETUN_HOST',"localhost")
         G_PORT = os.environ.get('GLUETUN_PORT',8000)
         self.gluetun_api = VpnControlServerApi(G_HOST, G_PORT, self.log)
-        # Set up the task to run daily
-        self.setup_daily_task()
+        # Set up the task to run on a schedule
+        self.setup_scheduled_task()
 
-    def setup_daily_task(self):
-        # Calculate the time until the next "daily" execution (24 hours from now)
+    def setup_scheduled_task(self):
+        # Calculate the time until the next execution
         self.run_update_port()
     
     def run_update_port(self):
         """This method will be called to perform the task and then reschedule itself."""
         self.update_port()
+        # Check that the port is open
+        threading.Timer(300, self.check_port_open).start()
 
-        # Schedule the next run in 24 hours (86400 seconds)
+        # Schedule the next run in X seconds
         threading.Timer(3600, self.run_update_port).start()
 
     def update_port(self):
@@ -50,6 +52,11 @@ class Plugin(BasePlugin):
                 return
         
             self.log(f"New port range is: {new_port_range}, success")
+
+    def check_port_open(self):
+        port = self.config.sections["server"]["portrange"][0]
+        if self.gluetun_api.is_port_closed(port):
+            pass
     
     def __del__(self):
         """Stop any pending scheduled tasks when the plugin is destroyed."""
