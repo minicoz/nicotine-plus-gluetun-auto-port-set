@@ -34,7 +34,7 @@ When used together, the plugin ensures that the Nicotine+ client always uses the
 
 1. After the plugin is added, you should see it listed in the **Plugins** section of the settings.
 2. Enable the plugin by checking the box next to its name.
-3. The plugin will now run automatically in the background and check for updated port numbers every 24 hours.
+3. The plugin will now run automatically in the background and check for updated port numbers every hour. You can change the schedule by manually editing the first attribute of `threading.Timer()` under \_\_init\_\_.py.
 
 ## How It Works
 

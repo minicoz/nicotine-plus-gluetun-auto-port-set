@@ -23,7 +23,7 @@ class Plugin(BasePlugin):
         self.update_port()
 
         # Schedule the next run in 24 hours (86400 seconds)
-        threading.Timer(86400, self.run_update_port).start()
+        threading.Timer(3600, self.run_update_port).start()
 
     def update_port(self):
         # Get port from gluetun
