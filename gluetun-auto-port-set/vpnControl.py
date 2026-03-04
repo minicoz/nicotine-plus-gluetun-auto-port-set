@@ -78,7 +78,6 @@ class VpnControlServerApi(object):
                 
                 # Check if the port status is open
                 if f"{port}/tcp open".encode() in response_body:
-                    self._log(f"Port {port} is open")
                     result = False
                 elif f"{port}/tcp closed".encode() in response_body:
                     self._log(f"Port {port} is closed")
