@@ -10,37 +10,53 @@ class Plugin(BasePlugin):
 
         G_HOST = os.environ.get('GLUETUN_HOST',"localhost")
         G_PORT = os.environ.get('GLUETUN_PORT',8000)
-        self.glutun_api = VpnControlServerApi(G_HOST, G_PORT, self.log)
-        # Set up the task to run daily
-        self.setup_daily_task()
+        self.gluetun_api = VpnControlServerApi(G_HOST, G_PORT, self.log)
+        # Set up the task to run on a schedule
+        self.setup_scheduled_task()
 
-    def setup_daily_task(self):
-        # Calculate the time until the next "daily" execution (24 hours from now)
+    def setup_scheduled_task(self):
+        # Calculate the time until the next execution
         self.run_update_port()
     
     def run_update_port(self):
         """This method will be called to perform the task and then reschedule itself."""
         self.update_port()
+        # Check that the port is open
+        threading.Timer(300, self.check_port_open).start()
 
-        # Schedule the next run in 24 hours (86400 seconds)
-        threading.Timer(86400, self.run_update_port).start()
+        # Schedule the next run in X seconds
+        threading.Timer(3600, self.run_update_port).start()
 
     def update_port(self):
+        # Get port from gluetun
         try:
-            vpn_port = self.glutun_api.forwarded_port
+            vpn_port = self.gluetun_api.forwarded_port
         except Exception as e:
             self.log(f"Error fetching VPN port: {str(e)}")
             return
-        try:
-            self.config.sections["server"]["portrange"] = (vpn_port, vpn_port)
-            self.core.reconnect()
-        except Exception as e:
-            self.log("Could not access settings or configuration. Required Nicotine version is 3.3.7+ for method reconnect")
-            self.log(e)
-            return
         
-        new_port_range = self.config.sections["server"]["portrange"]
-        self.log(f"New port range is: {new_port_range}, success")
+        # Get the current port range in Nicotine
+        old_port_range = self.config.sections["server"]["portrange"]
+
+        # If the port range has changed, set the new one
+        new_port_range = (vpn_port, vpn_port)
+        if old_port_range != new_port_range:
+            self.log("The forwarded port has changed, setting new port...")
+            self.log(f"Current port range is: {old_port_range}")
+            try:
+                self.config.sections["server"]["portrange"] = new_port_range
+                self.core.reconnect()
+            except Exception as e:
+                self.log("Could not access settings or configuration. Required Nicotine version is 3.3.7+ for method reconnect")
+                self.log(e)
+                return
+        
+            self.log(f"New port range is: {new_port_range}, success")
+
+    def check_port_open(self):
+        port = self.config.sections["server"]["portrange"][0]
+        if self.gluetun_api.is_port_closed(port):
+            pass
     
     def __del__(self):
         """Stop any pending scheduled tasks when the plugin is destroyed."""
