@@ -10,6 +10,12 @@ When used together, the plugin ensures that the Nicotine+ client always uses the
 - **Robust to VPN restarts**: Handles randomized port assignments caused by Gluten container restarts.
 - **Daily updates**: The plugin queries the control plane server every 24 hours to ensure the port remains current.
 - **Integration with Nicotine+ 3.3.7+**: Designed to work with Nicotine+ version 3.3.7 or later.
+- Now you will need two env variable in your nicotine container `GLUETUN_USER` and `GLUETUN_PASS`.
+- Gluetun now requires authentication for the endpoint, you can use the env variable on your gluetun container and set the username and password to match the nicotine env variable. 
+```
+- HTTP_CONTROL_SERVER_AUTH_DEFAULT_ROLE='{"auth":"basic","username":"username","password":"mypassword"}'
+```
+
 
 ## Installation Instructions
 
