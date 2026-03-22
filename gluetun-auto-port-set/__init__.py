@@ -9,8 +9,10 @@ class Plugin(BasePlugin):
         super().__init__(*args, **kwargs)
 
         G_HOST = os.environ.get('GLUETUN_HOST',"localhost")
-        G_PORT = os.environ.get('GLUETUN_PORT',8000)
-        self.gluetun_api = VpnControlServerApi(G_HOST, G_PORT, self.log)
+        G_PORT = int(os.environ.get('GLUETUN_PORT', 8000))
+        G_USER = os.environ.get('GLUETUN_USER')
+        G_PASS = os.environ.get('GLUETUN_PASS')
+        self.gluetun_api = VpnControlServerApi(G_HOST, G_PORT, G_USER, G_PASS, self.log)
         # Set up the task to run on a schedule
         self.setup_scheduled_task()
 
