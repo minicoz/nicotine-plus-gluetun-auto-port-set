@@ -3,21 +3,33 @@ from typing import Final
 import json
 import urllib.request
 import urllib.error
+import base64
+
 
 class VpnControlServerApi(object):
     def __init__(self,
                  host: str,
                  port: int,
-                 log):
+                 username: str = None,
+                 password: str = None,
+                 log = None):
         self._log = log
         self._host: Final[str] = host
         self._port: Final[int] = port
 
         # Set up the base URI for API
         self._API_BASE: Final[str] = f"http://{self._host}:{self._port}/v1"
+        
+        # Set up headers
         self._headers = {
             "Content-Type": "application/json"
         }
+        
+        # Add basic auth if credentials provided
+        if username and password:
+            credentials = f"{username}:{password}"
+            encoded_credentials = base64.b64encode(credentials.encode()).decode()
+            self._headers["Authorization"] = f"Basic {encoded_credentials}"
 
     def __enter__(self):
         return self
