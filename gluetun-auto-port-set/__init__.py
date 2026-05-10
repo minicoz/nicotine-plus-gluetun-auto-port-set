@@ -8,11 +8,16 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        G_HOST = os.environ.get('GLUETUN_HOST',"localhost")
-        G_PORT = int(os.environ.get('GLUETUN_PORT', 8000))
-        G_USER = os.environ.get('GLUETUN_USER')
-        G_PASS = os.environ.get('GLUETUN_PASS')
-        self.gluetun_api = VpnControlServerApi(G_HOST, G_PORT, G_USER, G_PASS, self.log)
+        self.host = os.environ.get('GLUETUN_HOST', "localhost")
+        self.port = int(os.environ.get('GLUETUN_PORT', 8000))
+        self.user = os.environ.get('GLUETUN_USER')
+        self.password = os.environ.get('GLUETUN_PASS')
+        self.gluetun_api = VpnControlServerApi(self.host, self.port, self.user, self.password, self.log)
+        
+        # Initialize timers
+        self.port_check_timer = None
+        self.reschedule_timer = None
+        
         # Set up the task to run on a schedule
         self.setup_scheduled_task()
 
@@ -24,10 +29,12 @@ class Plugin(BasePlugin):
         """This method will be called to perform the task and then reschedule itself."""
         self.update_port()
         # Check that the port is open
-        threading.Timer(300, self.check_port_open).start()
+        self.port_check_timer = threading.Timer(300, self.check_port_open)
+        self.port_check_timer.start()
 
         # Schedule the next run in X seconds
-        threading.Timer(3600, self.run_update_port).start()
+        self.reschedule_timer = threading.Timer(3600, self.run_update_port)
+        self.reschedule_timer.start()
 
     def update_port(self):
         # Get port from gluetun
@@ -58,9 +65,11 @@ class Plugin(BasePlugin):
     def check_port_open(self):
         port = self.config.sections["server"]["portrange"][0]
         if self.gluetun_api.is_port_closed(port):
-            pass
+            self.log(f"Port {port} is closed, will check again in 5 minutes")
     
     def __del__(self):
         """Stop any pending scheduled tasks when the plugin is destroyed."""
-        # No direct way to stop `threading.Timer` once started, but we can ignore errors on destruction.
-        pass
+        if self.port_check_timer is not None:
+            self.port_check_timer.cancel()
+        if self.reschedule_timer is not None:
+            self.reschedule_timer.cancel()
