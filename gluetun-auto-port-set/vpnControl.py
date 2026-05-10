@@ -86,19 +86,20 @@ class VpnControlServerApi(object):
             # Open the URL and read the response
             with urllib.request.urlopen(url, timeout=5) as response:
                 # Read the response and decode it to a string
-                response_body = response.read().lower()
+                response_body = response.read().decode().lower()
                 
                 # Check if the port status is open
-                if f"{port}/tcp open".encode() in response_body:
+                if f"{port}/tcp open" in response_body:
                     result = False
-                elif f"{port}/tcp closed".encode() in response_body:
+                elif f"{port}/tcp closed" in response_body:
                     self._log(f"Port {port} is closed")
                     result = True
                 else:
                     self._log(f"Unknown response from port checker: {response_body}")
+                    result = True  # Conservative: treat unknown response as closed
 
                 return result
 
-        except urllib.error.URLError as e:
-            self._log(f"Error: {e}")
-            return 1
+        except Exception as e:
+            self._log(f"Error checking port: {e}")
+            return True  # Conservative: treat error as port closed
